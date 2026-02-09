@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>PayFlow</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f2f4f7;
+}
+.container {
+    max-width: 720px;
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 14px;
+    padding: 25px;
+    box-shadow: 0 15px 40px rgba(0,0,0,.1);
+}
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.amount {
+    background: #e8f1ff;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-weight: bold;
+}
+.lang-btn {
+    background: none;
+    border: 1px solid #ccc;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+.steps {
+    display: flex;
+    justify-content: space-between;
+    margin: 25px 0;
+}
+.step {
+    width: 35px;
+    height: 35px;
+    background: #ddd;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 35px;
+}
+.step.active {
+    background: #0d2b45;
+    color: #fff;
+}
+.form-step { display: none; }
+.form-step.active { display: block; }
+
+input, select {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+.buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+button {
+    background: #0d2b45;
+    color: #fff;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+button.secondary {
+    background: #ccc;
+    color: #000;
+}
+.summary {
+    background: #f8f9fb;
+    padding: 15px;
+    border-radius: 8px;
+}
+.success {
+    text-align: center;
+    color: green;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2 id="title">PayFlow</h2>
+        <div>
+            <span class="amount" id="amount">المبلغ: 7750 EGP</span>
+            <button class="lang-btn" onclick="toggleLang()">EN</button>
+        </div>
+    </div>
+
+    <div class="steps">
+        <div class="step active">1</div>
+        <div class="step">2</div>
+        <div class="step">3</div>
+        <div class="step">4</div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div class="form-step active">
+        <h3 id="s1">بيانات المُرسل</h3>
+        <input id="senderName" placeholder="اسم المرسل">
+        <input id="senderPhone" placeholder="رقم الهاتف">
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="form-step">
+        <h3 id="s2">بيانات المستلم</h3>
+        <input id="receiverName" placeholder="اسم المستلم">
+        <input id="receiverPhone" placeholder="رقم InstaPay">
+        <select>
+            <option>InstaPay</option>
+            <option>محفظة إلكترونية</option>
+            <option>حساب بنكي</option>
+        </select>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="form-step">
+        <h3 id="s3">مراجعة العملية</h3>
+        <div class="summary">
+            <p id="sum1">اسم المرسل:</p>
+            <p id="sum2">اسم المستلم:</p>
+            <p id="sum3">المبلغ: 7750 EGP</p>
+        </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="form-step">
+        <div class="success">
+            <h2 id="success">✔ تم تنفيذ العملية بنجاح</h2>
+            <p id="txn">رقم العملية: TXN-784512</p>
+            <button onclick="location.reload()" id="new">عملية جديدة</button>
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="secondary" onclick="prevStep()" id="back">رجوع</button>
+        <button onclick="nextStep()" id="next">التالي</button>
+    </div>
+</div>
+
+<script>
+let current = 0;
+let lang = 'ar';
+
+const steps = document.querySelectorAll('.form-step');
+const circles = document.querySelectorAll('.step');
+
+function update() {
+    steps.forEach((s,i)=>s.classList.toggle('active', i===current));
+    circles.forEach((c,i)=>c.classList.toggle('active', i<=current));
+
+    if(current === 2){
+        sum1.innerText = (lang==='ar'?'اسم المرسل: ':'Sender: ') + senderName.value;
+        sum2.innerText = (lang==='ar'?'اسم المستلم: ':'Receiver: ') + receiverName.value;
+    }
+}
+
+function nextStep(){ if(current < 3) current++; update(); }
+function prevStep(){ if(current > 0) current--; update(); }
+
+function toggleLang(){
+    if(lang === 'ar'){
+        lang = 'en';
+        document.documentElement.lang = 'en';
+        document.documentElement.dir = 'ltr';
+
+        s1.innerText = 'Sender Information';
+        s2.innerText = 'Receiver Information';
+        s3.innerText = 'Review Transaction';
+        success.innerText = '✔ Transaction Successful';
+        back.innerText = 'Back';
+        next.innerText = 'Next';
+        new.innerText = 'New Transaction';
+        amount.innerText = 'Amount: 7750 EGP';
+    } else {
+        location.reload();
+    }
+}
+</script>
+
+</body>
+</html>
