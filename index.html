@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>PayFlow</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#f2f4f7;
+}
+.container{
+    max-width:720px;
+    margin:40px auto;
+    background:#fff;
+    border-radius:14px;
+    padding:25px;
+    box-shadow:0 15px 40px rgba(0,0,0,.1);
+}
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+.amount{
+    background:#e8f1ff;
+    padding:8px 14px;
+    border-radius:8px;
+    font-weight:bold;
+}
+.lang-btn{
+    margin-inline-start:10px;
+    border:1px solid #ccc;
+    background:#fff;
+    padding:6px 10px;
+    border-radius:6px;
+    cursor:pointer;
+}
+.timer{
+    margin-top:10px;
+    color:#b00020;
+    font-weight:bold;
+}
+.steps{
+    display:flex;
+    justify-content:space-between;
+    margin:25px 0;
+}
+.step{
+    width:35px;
+    height:35px;
+    border-radius:50%;
+    background:#ddd;
+    text-align:center;
+    line-height:35px;
+}
+.step.active{
+    background:#0d2b45;
+    color:#fff;
+}
+.form-step{display:none;}
+.form-step.active{display:block;}
+
+input,select{
+    width:100%;
+    padding:12px;
+    margin:10px 0;
+    border-radius:8px;
+    border:1px solid #ccc;
+}
+.buttons{
+    display:flex;
+    justify-content:space-between;
+    margin-top:20px;
+}
+button{
+    background:#0d2b45;
+    color:#fff;
+    border:none;
+    padding:12px 25px;
+    border-radius:8px;
+    cursor:pointer;
+}
+button.secondary{
+    background:#ccc;
+    color:#000;
+}
+.summary{
+    background:#f8f9fb;
+    padding:15px;
+    border-radius:8px;
+}
+.success{
+    text-align:center;
+    color:green;
+}
+.error{
+    color:#b00020;
+    margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2 id="title">PayFlow</h2>
+        <div>
+            <span class="amount" id="amount">المبلغ: 7750 EGP</span>
+            <button class="lang-btn" onclick="toggleLang()">EN</button>
+        </div>
+    </div>
+
+    <div class="timer" id="timer">الوقت المتبقي: 15:00</div>
+
+    <div class="steps">
+        <div class="step active">1</div>
+        <div class="step">2</div>
+        <div class="step">3</div>
+        <div class="step">4</div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div class="form-step active">
+        <h3 id="s1">بيانات المُرسل</h3>
+        <input id="senderName" placeholder="اسم المرسل">
+        <input id="senderPhone" placeholder="رقم الهاتف">
+        <div class="error" id="err1"></div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="form-step">
+        <h3 id="s2">بيانات المستلم</h3>
+        <input id="receiverName" placeholder="اسم المستلم">
+        <input id="receiverPhone" placeholder="رقم InstaPay">
+        <select id="method">
+            <option value="">اختر طريقة التحويل</option>
+            <option>InstaPay</option>
+            <option>محفظة إلكترونية</option>
+            <option>حساب بنكي</option>
+        </select>
+        <div class="error" id="err2"></div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="form-step">
+        <h3 id="s3">مراجعة العملية</h3>
+        <div class="summary">
+            <p id="sum1"></p>
+            <p id="sum2"></p>
+            <p id="sum3">المبلغ: 7750 EGP</p>
+        </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="form-step">
+        <div class="success">
+            <h2 id="success">✔ تم تنفيذ العملية بنجاح</h2>
+            <p id="txn">رقم العملية: TXN-894512</p>
+            <button onclick="location.reload()" id="new">عملية جديدة</button>
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="secondary" onclick="prevStep()" id="back">رجوع</button>
+        <button onclick="nextStep()" id="next">التالي</button>
+    </div>
+</div>
+
+<script>
+let current = 0;
+let lang = 'ar';
+let timeLeft = 15 * 60; // 15 دقيقة
+
+const steps = document.querySelectorAll('.form-step');
+const circles = document.querySelectorAll('.step');
+
+const senderName = document.getElementById('senderName');
+const senderPhone = document.getElementById('senderPhone');
+const receiverName = document.getElementById('receiverName');
+const receiverPhone = document.getElementById('receiverPhone');
+const method = document.getElementById('method');
+
+const sum1 = document.getElementById('sum1');
+const sum2 = document.getElementById('sum2');
+
+function update(){
+    steps.forEach((s,i)=>s.classList.toggle('active', i===current));
+    circles.forEach((c,i)=>c.classList.toggle('active', i<=current));
+
+    if(current === 2){
+        sum1.innerText = (lang==='ar'?'اسم المرسل: ':'Sender: ') + senderName.value;
+        sum2.innerText = (lang==='ar'?'اسم المستلم: ':'Receiver: ') + receiverName.value;
+    }
+}
+
+function validateStep(){
+    if(current === 0){
+        if(!senderName.value || !senderPhone.value){
+            document.getElementById('err1').innerText =
+            lang==='ar'?'يرجى ملء جميع الحقول':'Please fill all fields';
+            return false;
+        }
+        document.getElementById('err1').innerText='';
+    }
+
+    if(current === 1){
+        if(!receiverName.value || !receiverPhone.value || !method.value){
+            document.getElementById('err2').innerText =
+            lang==='ar'?'يرجى ملء جميع الحقول':'Please fill all fields';
+            return false;
+        }
+        document.getElementById('err2').innerText='';
+    }
+    return true;
+}
+
+function nextStep(){
+    if(!validateStep()) return;
+    if(current < 3){
+        current++;
+        update();
+    }
+}
+
+function prevStep(){
+    if(current > 0){
+        current--;
+        update();
+    }
+}
+
+// عداد الوقت
+setInterval(()=>{
+    timeLeft--;
+    if(timeLeft <= 0){
+        alert(lang==='ar'?'انتهى الوقت':'Session expired');
+        location.reload();
+    }
+    let m = Math.floor(timeLeft/60);
+    let s = timeLeft % 60;
+    document.getElementById('timer').innerText =
+        (lang==='ar'?'الوقت المتبقي: ':'Time left: ')
+        + `${m}:${s.toString().padStart(2,'0')}`;
+},1000);
+
+// تبديل اللغة
+function toggleLang(){
+    if(lang==='ar'){
+        lang='en';
+        document.documentElement.lang='en';
+        document.documentElement.dir='ltr';
+        document.getElementById('s1').innerText='Sender Information';
+        document.getElementById('s2').innerText='Receiver Information';
+        document.getElementById('s3').innerText='Review Transaction';
+        document.getElementById('success').innerText='✔ Transaction Successful';
+        document.getElementById('back').innerText='Back';
+        document.getElementById('next').innerText='Next';
+        document.getElementById('new').innerText='New Transaction';
+        document.getElementById('amount').innerText='Amount: 7750 EGP';
+    }else{
+        location.reload();
+    }
+}
+</script>
+
+</body>
+</html>
